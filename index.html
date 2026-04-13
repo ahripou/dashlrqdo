@@ -1,0 +1,1287 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Man Natura &#8212; Dashboard Ruches</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+/* -- Variables ------------------------------------------- */
+:root {
+  --vert-fonce:  #2d6a4f;
+  --vert-moyen:  #40916c;
+  --vert-clair:  #52b788;
+  --vert-pale:   #d8f3dc;
+  --orange:      #ea580c;
+  --orange-pale: #fff7ed;
+  --gris-bg:     #f0f2f5;
+  --gris-text:   #6b7280;
+  --gris-border: #e5e7eb;
+  --blanc:       #ffffff;
+  --rouge:       #dc2626;
+  --rouge-pale:  #fef2f2;
+  --bleu:        #2563eb;
+  --radius:      12px;
+  --shadow:      0 2px 12px rgba(0,0,0,.07);
+  --shadow-lg:   0 8px 32px rgba(0,0,0,.12);
+}
+
+/* -- Reset & Base ---------------------------------------- */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 15px; }
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: var(--gris-bg);
+  color: #1f2937;
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+/* -- Login ----------------------------------------------- */
+#login-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, var(--vert-fonce) 0%, var(--vert-moyen) 100%);
+  padding: 1rem;
+}
+.login-card {
+  background: var(--blanc);
+  border-radius: var(--radius);
+  padding: 2.5rem 2rem;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: var(--shadow-lg);
+}
+.login-logo {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+.login-logo h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--vert-fonce);
+  letter-spacing: -.5px;
+}
+.login-logo p {
+  color: var(--gris-text);
+  font-size: .875rem;
+  margin-top: .25rem;
+}
+.login-logo .leaf {
+  font-size: 2.5rem;
+  display: block;
+  margin-bottom: .5rem;
+}
+.form-group { margin-bottom: 1rem; }
+.form-group label {
+  display: block;
+  font-size: .8125rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: .375rem;
+}
+.form-group input {
+  width: 100%;
+  padding: .625rem .875rem;
+  border: 1.5px solid var(--gris-border);
+  border-radius: 8px;
+  font-size: .9375rem;
+  outline: none;
+  transition: border-color .2s;
+}
+.form-group input:focus { border-color: var(--vert-moyen); }
+.btn-login {
+  width: 100%;
+  padding: .75rem;
+  background: var(--vert-fonce);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: .5rem;
+  transition: background .2s;
+}
+.btn-login:hover { background: var(--vert-moyen); }
+.btn-login:disabled { opacity: .6; cursor: not-allowed; }
+.login-error {
+  color: var(--rouge);
+  font-size: .8125rem;
+  margin-top: .75rem;
+  text-align: center;
+  display: none;
+}
+
+/* -- Dashboard Layout ------------------------------------ */
+#dashboard-page { display: none; }
+
+.topbar {
+  background: var(--blanc);
+  border-bottom: 1px solid var(--gris-border);
+  padding: 0 1.5rem;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 1px 4px rgba(0,0,0,.05);
+}
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.topbar-title {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--vert-fonce);
+}
+.topbar-title span { color: var(--gris-text); font-weight: 400; font-size: .875rem; margin-left: .5rem; }
+
+.year-select {
+  padding: .35rem .75rem;
+  border: 1.5px solid var(--gris-border);
+  border-radius: 8px;
+  font-size: .875rem;
+  background: var(--blanc);
+  color: #374151;
+  cursor: pointer;
+  outline: none;
+}
+.year-select:focus { border-color: var(--vert-moyen); }
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+}
+.btn-import {
+  padding: .4rem .9rem;
+  background: var(--vert-pale);
+  color: var(--vert-fonce);
+  border: 1px solid var(--vert-clair);
+  border-radius: 8px;
+  font-size: .8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .2s;
+}
+.btn-import:hover { background: var(--vert-clair); color: #fff; }
+.btn-logout {
+  padding: .4rem .9rem;
+  background: transparent;
+  color: var(--gris-text);
+  border: 1px solid var(--gris-border);
+  border-radius: 8px;
+  font-size: .8125rem;
+  cursor: pointer;
+}
+.btn-logout:hover { background: var(--gris-bg); }
+.user-chip {
+  font-size: .8125rem;
+  color: var(--gris-text);
+  display: flex;
+  align-items: center;
+  gap: .375rem;
+}
+.user-chip .dot {
+  width: 8px; height: 8px;
+  background: var(--vert-clair);
+  border-radius: 50%;
+}
+
+.main-content {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+/* -- KPI Cards ------------------------------------------- */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+.kpi-card {
+  background: var(--blanc);
+  border-radius: var(--radius);
+  padding: 1.25rem 1.5rem;
+  box-shadow: var(--shadow);
+  border-left: 4px solid transparent;
+}
+.kpi-card.vert  { border-left-color: var(--vert-moyen); }
+.kpi-card.orange{ border-left-color: var(--orange); }
+.kpi-card.bleu  { border-left-color: var(--bleu); }
+.kpi-card.gris  { border-left-color: #9ca3af; }
+.kpi-label {
+  font-size: .75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--gris-text);
+  margin-bottom: .375rem;
+}
+.kpi-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #111827;
+  line-height: 1;
+}
+.kpi-delta {
+  font-size: .8rem;
+  margin-top: .375rem;
+  display: flex;
+  align-items: center;
+  gap: .25rem;
+}
+.kpi-delta.up   { color: var(--vert-moyen); }
+.kpi-delta.down { color: var(--rouge); }
+.kpi-delta.neutral { color: var(--gris-text); }
+
+/* -- Section headers ------------------------------------- */
+.section-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 1rem;
+  padding-bottom: .5rem;
+  border-bottom: 2px solid var(--vert-pale);
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+.section-title .badge {
+  font-size: .7rem;
+  font-weight: 600;
+  background: var(--vert-pale);
+  color: var(--vert-fonce);
+  padding: .15rem .5rem;
+  border-radius: 99px;
+}
+
+/* -- Charts Grid ----------------------------------------- */
+.charts-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+.chart-card {
+  background: var(--blanc);
+  border-radius: var(--radius);
+  padding: 1.25rem;
+  box-shadow: var(--shadow);
+}
+.chart-card.full { grid-column: 1 / -1; }
+.chart-card h3 {
+  font-size: .875rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 1rem;
+}
+.chart-wrapper { position: relative; height: 260px; }
+.chart-wrapper-sm { position: relative; height: 220px; }
+
+/* -- Tables ---------------------------------------------- */
+.table-section { margin-bottom: 1.5rem; }
+.table-wrapper {
+  background: var(--blanc);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow-x: auto;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .875rem;
+}
+thead th {
+  background: var(--gris-bg);
+  padding: .75rem 1rem;
+  text-align: left;
+  font-size: .75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--gris-text);
+  white-space: nowrap;
+  border-bottom: 1px solid var(--gris-border);
+}
+tbody td {
+  padding: .7rem 1rem;
+  border-bottom: 1px solid var(--gris-border);
+  white-space: nowrap;
+  color: #374151;
+}
+tbody tr:last-child td { border-bottom: none; }
+tbody tr:hover { background: #f9fafb; }
+.num { text-align: right; font-variant-numeric: tabular-nums; }
+.badge-up   { color: var(--vert-moyen); font-size: .75rem; font-weight: 600; }
+.badge-down { color: var(--rouge);      font-size: .75rem; font-weight: 600; }
+.badge-neutral { color: var(--gris-text); font-size: .75rem; }
+
+/* -- Tabs ------------------------------------------------ */
+.tabs {
+  display: flex;
+  gap: .25rem;
+  margin-bottom: 1rem;
+  border-bottom: 2px solid var(--gris-border);
+  padding-bottom: 0;
+}
+.tab-btn {
+  padding: .5rem 1rem;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  font-size: .875rem;
+  font-weight: 500;
+  color: var(--gris-text);
+  cursor: pointer;
+  transition: color .15s;
+}
+.tab-btn.active {
+  color: var(--vert-fonce);
+  border-bottom-color: var(--vert-fonce);
+  font-weight: 600;
+}
+
+/* -- Modal Import ---------------------------------------- */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.45);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--blanc);
+  border-radius: var(--radius);
+  padding: 2rem;
+  width: 100%;
+  max-width: 560px;
+  box-shadow: var(--shadow-lg);
+  position: relative;
+}
+.modal h2 {
+  font-size: 1.125rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  color: var(--vert-fonce);
+}
+.modal-close {
+  position: absolute;
+  top: 1rem; right: 1rem;
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  cursor: pointer;
+  color: var(--gris-text);
+  line-height: 1;
+}
+.dropzone {
+  border: 2px dashed var(--gris-border);
+  border-radius: 8px;
+  padding: 2.5rem;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color .2s, background .2s;
+  color: var(--gris-text);
+}
+.dropzone:hover, .dropzone.drag-over {
+  border-color: var(--vert-moyen);
+  background: var(--vert-pale);
+}
+.dropzone input { display: none; }
+.dropzone-icon { font-size: 2rem; margin-bottom: .5rem; display: block; }
+.dropzone p { font-size: .875rem; }
+.dropzone p strong { color: var(--vert-fonce); }
+.file-selected {
+  display: none;
+  background: var(--vert-pale);
+  border: 1px solid var(--vert-clair);
+  border-radius: 8px;
+  padding: .75rem 1rem;
+  font-size: .875rem;
+  color: var(--vert-fonce);
+  margin-top: .75rem;
+  align-items: center;
+  gap: .5rem;
+}
+.file-selected.show { display: flex; }
+.preview-table {
+  margin-top: 1rem;
+  overflow-x: auto;
+  max-height: 160px;
+  border: 1px solid var(--gris-border);
+  border-radius: 8px;
+  display: none;
+}
+.preview-table.show { display: block; }
+.preview-table table { font-size: .75rem; }
+.modal-actions {
+  display: flex;
+  gap: .75rem;
+  margin-top: 1.5rem;
+  justify-content: flex-end;
+}
+.btn-primary {
+  padding: .6rem 1.25rem;
+  background: var(--vert-fonce);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: .875rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.btn-primary:hover { background: var(--vert-moyen); }
+.btn-primary:disabled { opacity: .5; cursor: not-allowed; }
+.btn-secondary {
+  padding: .6rem 1.25rem;
+  background: var(--blanc);
+  color: #374151;
+  border: 1px solid var(--gris-border);
+  border-radius: 8px;
+  font-size: .875rem;
+  cursor: pointer;
+}
+.progress-bar-wrap {
+  height: 6px;
+  background: var(--gris-border);
+  border-radius: 99px;
+  margin-top: 1rem;
+  display: none;
+  overflow: hidden;
+}
+.progress-bar-wrap.show { display: block; }
+.progress-bar {
+  height: 100%;
+  background: var(--vert-moyen);
+  border-radius: 99px;
+  width: 0;
+  transition: width .3s;
+}
+.import-result {
+  display: none;
+  margin-top: 1rem;
+  border-radius: 8px;
+  padding: 1rem;
+  font-size: .875rem;
+}
+.import-result.success { background: var(--vert-pale); color: var(--vert-fonce); }
+.import-result.error   { background: var(--rouge-pale); color: var(--rouge); }
+.import-result.show    { display: block; }
+
+/* -- Loading skeleton ------------------------------------ */
+.skeleton {
+  background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+  border-radius: 4px;
+}
+@keyframes shimmer { to { background-position: -200% 0; } }
+
+/* -- Responsive ------------------------------------------ */
+@media (max-width: 900px) {
+  .charts-grid { grid-template-columns: 1fr; }
+  .chart-card.full { grid-column: 1; }
+}
+@media (max-width: 600px) {
+  .topbar { padding: 0 1rem; }
+  .topbar-title span { display: none; }
+  .main-content { padding: 1rem; }
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+}
+</style>
+</head>
+<body>
+
+<!-- &#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552; PAGE LOGIN &#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552; -->
+<div id="login-page">
+  <div class="login-card">
+    <div class="login-logo">
+      <span class="leaf">&#127807;</span>
+      <h1>Man Natura</h1>
+      <p>Dashboard des Ruches</p>
+    </div>
+    <form id="login-form">
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" placeholder="votre@email.com" required autocomplete="email">
+      </div>
+      <div class="form-group">
+        <label for="password">Mot de passe</label>
+        <input type="password" id="password" placeholder="&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;" required autocomplete="current-password">
+      </div>
+      <button type="submit" class="btn-login" id="btn-login">Se connecter</button>
+      <p class="login-error" id="login-error"></p>
+    </form>
+  </div>
+</div>
+
+<!-- &#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552; DASHBOARD &#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552; -->
+<div id="dashboard-page">
+  <!-- Topbar -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <span style="font-size:1.25rem">&#127807;</span>
+      <span class="topbar-title">Man Natura<span>Dashboard Ruches</span></span>
+      <select class="year-select" id="year-select"></select>
+    </div>
+    <div class="topbar-right">
+      <span class="user-chip"><span class="dot"></span><span id="user-nom"></span></span>
+      <button class="btn-import" id="btn-open-import" style="display:none">&#11014; Importer CSV</button>
+      <button class="btn-logout" id="btn-logout">D&#233;connexion</button>
+    </div>
+  </header>
+
+  <!-- Contenu principal -->
+  <main class="main-content">
+
+    <!-- KPI Cards -->
+    <div class="kpi-grid" id="kpi-grid">
+      <div class="kpi-card vert">
+        <div class="kpi-label">Commandes totales</div>
+        <div class="kpi-value" id="kpi-commandes">&#8212;</div>
+        <div class="kpi-delta neutral" id="kpi-commandes-delta"></div>
+      </div>
+      <div class="kpi-card orange">
+        <div class="kpi-label">CA estim&#233;</div>
+        <div class="kpi-value" id="kpi-ca">&#8212;</div>
+        <div class="kpi-delta neutral" id="kpi-ca-delta"></div>
+      </div>
+      <div class="kpi-card bleu">
+        <div class="kpi-label">Panier moyen</div>
+        <div class="kpi-value" id="kpi-panier">&#8212;</div>
+        <div class="kpi-delta neutral" id="kpi-panier-delta"></div>
+      </div>
+      <div class="kpi-card gris">
+        <div class="kpi-label">Membres actifs</div>
+        <div class="kpi-value" id="kpi-membres">&#8212;</div>
+        <div class="kpi-delta neutral" id="kpi-membres-delta"></div>
+      </div>
+    </div>
+
+    <!-- Graphiques ligne : &#233;volution mensuelle -->
+    <div class="section-title">&#128200; &#201;volution mensuelle <span class="badge" id="chart-years-badge"></span></div>
+    <div class="charts-grid">
+      <div class="chart-card full">
+        <h3>Commandes par mois &#8212; comparaison ann&#233;es</h3>
+        <div class="chart-wrapper"><canvas id="chart-commandes"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <h3>CA estim&#233; mensuel (&#8364;)</h3>
+        <div class="chart-wrapper-sm"><canvas id="chart-ca"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <h3>Panier moyen mensuel (&#8364;)</h3>
+        <div class="chart-wrapper-sm"><canvas id="chart-panier"></canvas></div>
+      </div>
+    </div>
+
+    <!-- Graphiques par ruche -->
+    <div class="section-title">&#127978; Statistiques par Ruche</div>
+    <div class="charts-grid">
+      <div class="chart-card">
+        <h3>Commandes par ruche</h3>
+        <div class="chart-wrapper"><canvas id="chart-ruches-bar"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <h3>R&#233;partition CA par ruche</h3>
+        <div class="chart-wrapper"><canvas id="chart-ruches-doughnut"></canvas></div>
+      </div>
+      <div class="chart-card full">
+        <h3>Panier moyen par ruche (&#8364;)</h3>
+        <div class="chart-wrapper-sm"><canvas id="chart-ruches-panier"></canvas></div>
+      </div>
+    </div>
+
+    <!-- Tableau mensuel -->
+    <div class="table-section">
+      <div class="section-title">&#128203; Donn&#233;es d&#233;taill&#233;es</div>
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="monthly">Par mois</button>
+        <button class="tab-btn" data-tab="ruches">Par ruche</button>
+      </div>
+
+      <!-- Tableau mensuel -->
+      <div id="tab-monthly" class="table-wrapper">
+        <table id="table-monthly">
+          <thead>
+            <tr>
+              <th>Mois</th>
+              <th class="num">Commandes</th>
+              <th class="num">vs N-1</th>
+              <th class="num">Membres</th>
+              <th class="num">Panier moy.</th>
+              <th class="num">CA estim&#233;</th>
+              <th class="num">Ventes G/C</th>
+              <th class="num">1ers CMD</th>
+              <th class="num">Distributions</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-monthly"></tbody>
+        </table>
+      </div>
+
+      <!-- Tableau par ruche -->
+      <div id="tab-ruches" class="table-wrapper" style="display:none">
+        <table id="table-ruches">
+          <thead>
+            <tr>
+              <th>Ruche</th>
+              <th class="num">Commandes</th>
+              <th class="num">Membres</th>
+              <th class="num">Panier moy.</th>
+              <th class="num">CA estim&#233;</th>
+              <th class="num">Ventes G/C</th>
+              <th class="num">1ers CMD</th>
+              <th class="num">Distributions</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-ruches"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- &#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552; MODAL IMPORT CSV &#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552; -->
+<div class="modal-overlay" id="modal-import">
+  <div class="modal">
+    <button class="modal-close" id="modal-close">&#10005;</button>
+    <h2>&#11014; Importer des donn&#233;es CSV</h2>
+
+    <div class="dropzone" id="dropzone">
+      <input type="file" id="file-input" accept=".csv,.txt">
+      <span class="dropzone-icon">&#128196;</span>
+      <p>Glissez votre fichier CSV ici<br>ou <strong>cliquez pour s&#233;lectionner</strong></p>
+    </div>
+
+    <div class="file-selected" id="file-selected">
+      <span>&#128206;</span>
+      <span id="file-name"></span>
+    </div>
+
+    <div class="preview-table" id="preview-table">
+      <table id="preview-table-content"></table>
+    </div>
+
+    <div class="progress-bar-wrap" id="progress-wrap">
+      <div class="progress-bar" id="progress-bar"></div>
+    </div>
+
+    <div class="import-result" id="import-result"></div>
+
+    <div class="modal-actions">
+      <button class="btn-secondary" id="btn-cancel-import">Annuler</button>
+      <button class="btn-primary" id="btn-do-import" disabled>Importer</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// &#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;
+// Configuration
+// &#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;
+const BASE_URL = 'https://vedopibxnomcafbqgnqk.supabase.co/functions/v1';
+
+const MOIS_NOMS = ['', 'Janv.', 'F&#233;vr.', 'Mars', 'Avr.', 'Mai', 'Juin',
+                       'Juil.', 'Ao&#251;t', 'Sept.', 'Oct.', 'Nov.', 'D&#233;c.'];
+
+// Couleurs par ann&#233;e
+const YEAR_COLORS = {
+  2024: { border: '#2563eb', bg: 'rgba(37,99,235,.12)' },
+  2025: { border: '#40916c', bg: 'rgba(64,145,108,.12)' },
+  2026: { border: '#ea580c', bg: 'rgba(234,88,12,.12)'  },
+};
+
+// &#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;
+// &#201;tat global
+// &#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;
+let token = null;
+let userInfo = null;
+let selectedYear = new Date().getFullYear();
+let evolutionData = null;
+let charts = {};
+
+// &#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;
+// Utilitaires
+// &#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;
+function fmt(n, decimals = 0) {
+  if (n == null || isNaN(n)) return '&#8212;';
+  return Number(n).toLocaleString('fr-BE', {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals
+  });
+}
+function fmtEur(n) {
+  if (n == null || isNaN(n)) return '&#8212;';
+  return Number(n).toLocaleString('fr-BE', { style: 'currency', currency: 'EUR' });
+}
+function fmtPct(n) {
+  if (n == null || isNaN(n)) return null;
+  const sign = n > 0 ? '+' : '';
+  return `${sign}${n}%`;
+}
+function deltaClass(n) {
+  if (n == null) return 'neutral';
+  return n > 0 ? 'up' : n < 0 ? 'down' : 'neutral';
+}
+function deltaArrow(n) {
+  if (n == null) return '';
+  return n > 0 ? '&#9650;' : n < 0 ? '&#9660;' : '&#8594;';
+}
+
+async function apiFetch(endpoint, opts = {}) {
+  const res = await fetch(`${BASE_URL}${endpoint}`, {
+    ...opts,
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      ...(opts.headers || {})
+    }
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || `HTTP ${res.status}`);
+  }
+  return res.json();
+}
+
+// &#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;
+// Auth
+// &#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;
+document.getElementById('login-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = document.getElementById('btn-login');
+  const errEl = document.getElementById('login-error');
+  btn.disabled = true;
+  btn.textContent = 'Connexion&#8230;';
+  errEl.style.display = 'none';
+
+  try {
+    const email    = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    const res = await fetch(`${BASE_URL}/dashboard-auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Erreur');
+    token    = data.token;
+    userInfo = data.user;
+    localStorage.setItem('mn_token', token);
+    localStorage.setItem('mn_user', JSON.stringify(userInfo));
+    showDashboard();
+  } catch (err) {
+    errEl.textContent = err.message;
+    errEl.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Se connecter';
+  }
+});
+
+document.getElementById('btn-logout').addEventListener('click', logout);
+
+function logout() {
+  token = null; userInfo = null;
+  localStorage.removeItem('mn_token');
+  localStorage.removeItem('mn_user');
+  document.getElementById('dashboard-page').style.display = 'none';
+  document.getElementById('login-page').style.display = 'flex';
+  destroyCharts();
+}
+
+// Restauration de session
+(function restoreSession() {
+  const t = localStorage.getItem('mn_token');
+  const u = localStorage.getItem('mn_user');
+  if (t && u) {
+    try {
+      token    = t;
+      userInfo = JSON.parse(u);
+      showDashboard();
+      return;
+    } catch {}
+  }
+  document.getElementById('login-page').style.display = 'flex';
+})();
+
+// &#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;
+// Dashboard init
+// &#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;
+function showDashboard() {
+  document.getElementById('login-page').style.display = 'none';
+  document.getElementById('dashboard-page').style.display = 'block';
+  document.getElementById('user-nom').textContent = userInfo.nom;
+  if (userInfo.role === 'admin') {
+    document.getElementById('btn-open-import').style.display = 'inline-block';
+  }
+  initYearSelect();
+  loadAllData();
+}
+
+function initYearSelect() {
+  const sel = document.getElementById('year-select');
+  sel.innerHTML = '';
+  const currentYear = new Date().getFullYear();
+  for (let y = currentYear; y >= 2024; y--) {
+    const opt = document.createElement('option');
+    opt.value = y;
+    opt.textContent = y;
+    sel.appendChild(opt);
+  }
+  sel.value = selectedYear;
+  sel.addEventListener('change', () => {
+    selectedYear = parseInt(sel.value);
+    loadAllData();
+  });
+}
+
+async function loadAllData() {
+  try {
+    // Charger toutes les donn&#233;es en parall&#232;le
+    const [overview, monthly, byRuche, evolution] = await Promise.all([
+      apiFetch(`/dashboard-api/stats/overview`),
+      apiFetch(`/dashboard-api/stats/monthly?year=${selectedYear}`),
+      apiFetch(`/dashboard-api/stats/by-ruche?year=${selectedYear}`),
+      apiFetch(`/dashboard-api/stats/evolution`)
+    ]);
+
+    evolutionData = evolution;
+    renderKPIs(overview);
+    renderMonthlyTable(monthly || []);
+    renderRuchesTable(byRuche || []);
+    renderCharts(monthly || [], byRuche || [], evolution || []);
+  } catch (err) {
+    console.error('Erreur chargement donn&#233;es:', err);
+    if (err.message.includes('401') || err.message.includes('invalide')) {
+      logout();
+    }
+  }
+}
+
+// &#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;
+// KPIs
+// &#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;
+function renderKPIs(d) {
+  document.getElementById('kpi-commandes').textContent = fmt(d.commandes);
+  document.getElementById('kpi-ca').textContent = fmtEur(d.ca_estime);
+  document.getElementById('kpi-panier').textContent = fmtEur(d.panier_moyen);
+  document.getElementById('kpi-membres').textContent = fmt(d.membres);
+
+  setDelta('kpi-commandes-delta', d.pct_commandes, `vs ${d.prev_year}: ${fmt(d.prev_commandes)}`);
+  setDelta('kpi-ca-delta', d.pct_ca, `vs ${d.prev_year}: ${fmtEur(d.prev_ca_estime)}`);
+  setDelta('kpi-panier-delta', d.pct_panier, `vs ${d.prev_year}: ${fmtEur(d.prev_panier_moyen)}`);
+  setDelta('kpi-membres-delta', null, `${d.nb_distributions} distributions`);
+}
+
+function setDelta(id, pct, label) {
+  const el = document.getElementById(id);
+  const pctStr = fmtPct(pct);
+  const cls = deltaClass(pct);
+  el.className = `kpi-delta ${cls}`;
+  el.innerHTML = pctStr
+    ? `${deltaArrow(pct)} ${pctStr} <span style="color:var(--gris-text);font-weight:400">${label}</span>`
+    : `<span style="color:var(--gris-text)">${label}</span>`;
+}
+
+// &#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;
+// Tableaux
+// &#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;
+function renderMonthlyTable(rows) {
+  const tbody = document.getElementById('tbody-monthly');
+  if (!rows || rows.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--gris-text);padding:2rem">Aucune donn&#233;e pour cette ann&#233;e</td></tr>';
+    return;
+  }
+  tbody.innerHTML = rows.map(r => {
+    const pct = r.pct_commandes;
+    const cls = deltaClass(pct);
+    const arrow = pct != null ? `${deltaArrow(pct)} ${fmtPct(pct)}` : '&#8212;';
+    return `<tr>
+      <td><strong>${MOIS_NOMS[r.mois] || r.mois}</strong></td>
+      <td class="num">${fmt(r.commandes)}</td>
+      <td class="num"><span class="badge-${cls}">${arrow}</span></td>
+      <td class="num">${fmt(r.membres)}</td>
+      <td class="num">${fmtEur(r.panier_moyen)}</td>
+      <td class="num">${fmtEur(r.ca_estime)}</td>
+      <td class="num">${fmtEur(r.ventes_gc)}</td>
+      <td class="num">${fmt(r.premiers_cmd)}</td>
+      <td class="num">${fmt(r.nb_distributions)}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderRuchesTable(rows) {
+  const tbody = document.getElementById('tbody-ruches');
+  if (!rows || rows.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--gris-text);padding:2rem">Aucune donn&#233;e</td></tr>';
+    return;
+  }
+  tbody.innerHTML = rows.map(r => `<tr>
+    <td><strong>${r.ruche_code}</strong> <span style="color:var(--gris-text);font-size:.8rem">${r.ruche_nom}</span></td>
+    <td class="num">${fmt(r.commandes)}</td>
+    <td class="num">${fmt(r.membres)}</td>
+    <td class="num">${fmtEur(r.panier_moyen)}</td>
+    <td class="num">${fmtEur(r.ca_estime)}</td>
+    <td class="num">${fmtEur(r.ventes_gc)}</td>
+    <td class="num">${fmt(r.premiers_cmd)}</td>
+    <td class="num">${fmt(r.nb_distributions)}</td>
+  </tr>`).join('');
+}
+
+// Tabs
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const tab = btn.dataset.tab;
+    document.getElementById('tab-monthly').style.display = tab === 'monthly' ? '' : 'none';
+    document.getElementById('tab-ruches').style.display  = tab === 'ruches'  ? '' : 'none';
+  });
+});
+
+// &#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;
+// Graphiques
+// &#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;
+const CHART_DEFAULTS = {
+  plugins: { legend: { labels: { font: { size: 12 }, boxWidth: 12 } } },
+  scales: {
+    x: { grid: { display: false }, ticks: { font: { size: 11 } } },
+    y: { grid: { color: '#f3f4f6' }, ticks: { font: { size: 11 } } }
+  }
+};
+
+function destroyCharts() {
+  Object.values(charts).forEach(c => c?.destroy());
+  charts = {};
+}
+
+function renderCharts(monthly, byRuche, evolution) {
+  destroyCharts();
+
+  const labels = MOIS_NOMS.slice(1);
+
+  // -- Grouper l'&#233;volution par ann&#233;e -----------------
+  const byYear = {};
+  for (const row of evolution) {
+    if (!byYear[row.annee]) byYear[row.annee] = Array(12).fill(null);
+    byYear[row.annee][row.mois - 1] = row;
+  }
+  const years = Object.keys(byYear).map(Number).sort();
+  document.getElementById('chart-years-badge').textContent = years.join(' / ');
+
+  // -- Chart : commandes multi-ann&#233;es ----------------
+  const datasetsCmd = years.map(y => ({
+    label: String(y),
+    data: byYear[y].map(r => r?.commandes ?? null),
+    borderColor: (YEAR_COLORS[y] || { border: '#9ca3af' }).border,
+    backgroundColor: (YEAR_COLORS[y] || { bg: 'rgba(156,163,175,.1)' }).bg,
+    borderWidth: y === selectedYear ? 3 : 1.5,
+    tension: .35,
+    spanGaps: true,
+    pointRadius: 4,
+    fill: y === selectedYear
+  }));
+
+  charts.commandes = new Chart(document.getElementById('chart-commandes'), {
+    type: 'line',
+    data: { labels, datasets: datasetsCmd },
+    options: {
+      ...CHART_DEFAULTS,
+      responsive: true, maintainAspectRatio: false,
+      plugins: { ...CHART_DEFAULTS.plugins, tooltip: { mode: 'index', intersect: false } }
+    }
+  });
+
+  // -- Chart : CA mensuel (ann&#233;e s&#233;lectionn&#233;e) -------
+  const caData = Array(12).fill(null);
+  for (const r of monthly) caData[r.mois - 1] = r.ca_estime;
+
+  charts.ca = new Chart(document.getElementById('chart-ca'), {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: `CA ${selectedYear}`,
+        data: caData,
+        borderColor: (YEAR_COLORS[selectedYear] || YEAR_COLORS[2025]).border,
+        backgroundColor: (YEAR_COLORS[selectedYear] || YEAR_COLORS[2025]).bg,
+        borderWidth: 2.5, tension: .35, spanGaps: true, fill: true, pointRadius: 4
+      }]
+    },
+    options: {
+      ...CHART_DEFAULTS,
+      responsive: true, maintainAspectRatio: false,
+      plugins: { ...CHART_DEFAULTS.plugins, tooltip: {
+        callbacks: { label: ctx => fmtEur(ctx.raw) }
+      }}
+    }
+  });
+
+  // -- Chart : Panier moyen --------------------------
+  const panierData = Array(12).fill(null);
+  for (const r of monthly) panierData[r.mois - 1] = r.panier_moyen;
+
+  charts.panier = new Chart(document.getElementById('chart-panier'), {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: `Panier moyen ${selectedYear}`,
+        data: panierData,
+        borderColor: '#7c3aed',
+        backgroundColor: 'rgba(124,58,237,.1)',
+        borderWidth: 2.5, tension: .35, spanGaps: true, fill: true, pointRadius: 4
+      }]
+    },
+    options: {
+      ...CHART_DEFAULTS,
+      responsive: true, maintainAspectRatio: false,
+      plugins: { ...CHART_DEFAULTS.plugins, tooltip: {
+        callbacks: { label: ctx => fmtEur(ctx.raw) }
+      }}
+    }
+  });
+
+  // -- Chart : commandes par ruche (barres) ----------
+  const prevYear = selectedYear - 1;
+  const byYearPrev = byYear[prevYear] || [];
+  const rucheLabels = byRuche.map(r => r.ruche_code);
+  const rucheCmdCurr = byRuche.map(r => r.commandes);
+
+  // Calculer les commandes N-1 par ruche
+  const prevEvolution = evolution.filter(e => e.annee === prevYear);
+  // On utilise l'API by-ruche pour N (d&#233;j&#224; charg&#233;) &#8212; pour N-1 on approxime depuis l'&#233;volution (sans d&#233;tail ruche)
+  // Note : dashboard_by_ruche pour l'ann&#233;e pr&#233;c&#233;dente serait n&#233;cessaire pour exact, ici on montre ann&#233;e en cours uniquement + total N-1 dans le tooltip
+  charts.ruchesBar = new Chart(document.getElementById('chart-ruches-bar'), {
+    type: 'bar',
+    data: {
+      labels: rucheLabels,
+      datasets: [{
+        label: `Commandes ${selectedYear}`,
+        data: rucheCmdCurr,
+        backgroundColor: (YEAR_COLORS[selectedYear] || YEAR_COLORS[2025]).border,
+        borderRadius: 6
+      }]
+    },
+    options: {
+      ...CHART_DEFAULTS,
+      responsive: true, maintainAspectRatio: false,
+      plugins: { ...CHART_DEFAULTS.plugins }
+    }
+  });
+
+  // -- Chart : CA par ruche (doughnut) ---------------
+  const doughnutColors = [
+    '#2d6a4f','#40916c','#52b788','#74c69d','#95d5b2',
+    '#b7e4c7','#d8f3dc','#1b4332','#081c15','#0d2b1d'
+  ];
+  charts.ruchesDoughnut = new Chart(document.getElementById('chart-ruches-doughnut'), {
+    type: 'doughnut',
+    data: {
+      labels: byRuche.map(r => `${r.ruche_code}`),
+      datasets: [{
+        data: byRuche.map(r => r.ca_estime),
+        backgroundColor: doughnutColors,
+        borderWidth: 2,
+        borderColor: '#fff'
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'right', labels: { font: { size: 11 }, boxWidth: 12 } },
+        tooltip: { callbacks: { label: ctx => `${ctx.label}: ${fmtEur(ctx.raw)}` } }
+      }
+    }
+  });
+
+  // -- Chart : panier moyen par ruche (barres horizontales) --
+  charts.ruchesPanier = new Chart(document.getElementById('chart-ruches-panier'), {
+    type: 'bar',
+    data: {
+      labels: byRuche.map(r => `${r.ruche_code}`),
+      datasets: [{
+        label: 'Panier moyen (&#8364;)',
+        data: byRuche.map(r => r.panier_moyen),
+        backgroundColor: '#7c3aed',
+        borderRadius: 6
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => fmtEur(ctx.raw) } }
+      },
+      scales: {
+        x: { grid: { color: '#f3f4f6' }, ticks: { font: { size: 10 } } },
+        y: { grid: { display: false }, ticks: { font: { size: 11 } } }
+      }
+    }
+  });
+}
+
+// &#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;
+// Modal Import CSV
+// &#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;
+let selectedFile = null;
+
+document.getElementById('btn-open-import').addEventListener('click', () => {
+  resetImportModal();
+  document.getElementById('modal-import').classList.add('open');
+});
+document.getElementById('modal-close').addEventListener('click', closeImportModal);
+document.getElementById('btn-cancel-import').addEventListener('click', closeImportModal);
+document.getElementById('modal-import').addEventListener('click', (e) => {
+  if (e.target === document.getElementById('modal-import')) closeImportModal();
+});
+
+function closeImportModal() {
+  document.getElementById('modal-import').classList.remove('open');
+  resetImportModal();
+}
+
+function resetImportModal() {
+  selectedFile = null;
+  document.getElementById('file-selected').classList.remove('show');
+  document.getElementById('preview-table').classList.remove('show');
+  document.getElementById('progress-wrap').classList.remove('show');
+  document.getElementById('import-result').classList.remove('show', 'success', 'error');
+  document.getElementById('btn-do-import').disabled = true;
+  document.getElementById('file-input').value = '';
+}
+
+// Drag & Drop
+const dropzone = document.getElementById('dropzone');
+dropzone.addEventListener('click', () => document.getElementById('file-input').click());
+dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('drag-over'); });
+dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag-over'));
+dropzone.addEventListener('drop', (e) => {
+  e.preventDefault();
+  dropzone.classList.remove('drag-over');
+  handleFile(e.dataTransfer.files[0]);
+});
+document.getElementById('file-input').addEventListener('change', (e) => {
+  if (e.target.files[0]) handleFile(e.target.files[0]);
+});
+
+async function handleFile(file) {
+  if (!file) return;
+  selectedFile = file;
+
+  const nameEl = document.getElementById('file-name');
+  nameEl.textContent = `${file.name} (${(file.size / 1024).toFixed(1)} Ko)`;
+  document.getElementById('file-selected').classList.add('show');
+
+  // Pr&#233;visualisation des 5 premi&#232;res lignes
+  const text = await file.text();
+  const lines = text.split('\n').map(l => l.trimEnd()).filter(l => l.trim()).slice(0, 6);
+  const rows = lines.map(l => parseCSVLine(l));
+  const maxCols = Math.max(...rows.map(r => r.length));
+
+  let html = '<table>';
+  rows.forEach((r, i) => {
+    const tag = i === 0 ? 'th' : 'td';
+    html += `<tr>${r.map(c => `<${tag}>${escHtml(c)}</${tag}>`).join('')}</tr>`;
+  });
+  html += '</table>';
+
+  const pt = document.getElementById('preview-table');
+  document.getElementById('preview-table-content').outerHTML = `<table id="preview-table-content">${html.slice('<table>'.length, -'</table>'.length)}</table>`;
+  pt.innerHTML = html;
+  pt.classList.add('show');
+
+  document.getElementById('btn-do-import').disabled = false;
+}
+
+function parseCSVLine(line) {
+  const result = [];
+  let cur = '', inQ = false;
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i];
+    if (c === '"') { inQ = !inQ; }
+    else if (c === ',' && !inQ) { result.push(cur.trim()); cur = ''; }
+    else cur += c;
+  }
+  result.push(cur.trim());
+  return result;
+}
+
+function escHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+document.getElementById('btn-do-import').addEventListener('click', doImport);
+
+async function doImport() {
+  if (!selectedFile) return;
+  const btn = document.getElementById('btn-do-import');
+  const progWrap = document.getElementById('progress-wrap');
+  const progBar  = document.getElementById('progress-bar');
+  const resultEl = document.getElementById('import-result');
+
+  btn.disabled = true;
+  btn.textContent = 'Import en cours&#8230;';
+  resultEl.classList.remove('show', 'success', 'error');
+  progWrap.classList.add('show');
+  progBar.style.width = '20%';
+
+  try {
+    const formData = new FormData();
+    formData.append('file', selectedFile);
+
+    progBar.style.width = '50%';
+
+    const res = await fetch(`${BASE_URL}/dashboard-import/import/csv`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` },
+      body: formData
+    });
+
+    progBar.style.width = '90%';
+    const data = await res.json();
+
+    if (!res.ok) throw new Error(data.error || 'Erreur serveur');
+
+    progBar.style.width = '100%';
+    resultEl.className = 'import-result success show';
+    resultEl.innerHTML = `
+      <strong>&#10003; Import r&#233;ussi</strong><br>
+      ${data.inseres} enregistrement(s) import&#233;(s) sur ${data.total} ligne(s).<br>
+      ${data.ignores > 0 ? `${data.ignores} ligne(s) ignor&#233;e(s).` : ''}
+      ${data.erreurs > 0 ? `<br><span style="color:var(--rouge)">${data.erreurs} erreur(s) : ${(data.details_erreurs || []).slice(0,3).join(', ')}</span>` : ''}
+    `;
+
+    // Recharger les donn&#233;es du dashboard
+    setTimeout(() => loadAllData(), 800);
+
+  } catch (err) {
+    progBar.style.width = '100%';
+    resultEl.className = 'import-result error show';
+    resultEl.innerHTML = `<strong>&#10007; Erreur</strong><br>${err.message}`;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Importer';
+  }
+}
+</script>
+</body>
+</html>
